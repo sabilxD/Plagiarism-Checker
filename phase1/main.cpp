@@ -17,16 +17,17 @@ double execute_and_verify_testcase(std::string test_dir) {
             expected[3] >> expected[4];
     in.close();
     std::array<double, 5> results;
-    /*
-    uncomment for debugging
 
-    std::cout << "output " << output[0] << " expected " << expected[0] <<  std::endl ; 
-    std::cout << "output " << output[1] << " expected " << expected[1] <<  std::endl ; 
-    std::cout << "output " << output[2] << " expected " << expected[2] <<  std::endl ; 
-    std::cout << "output " << output[3] << " expected " << expected[3] <<  std::endl ; 
-    std::cout << "output " << output[4] << " expected " << expected[4] <<  std::endl ;
-    
-    */ 
+    /* remove comment for checking expected output and the actual output for debugging purposes
+
+       std::cout << "output " << output[0] << " expected " << expected[0] <<  std::endl ; 
+       std::cout << "output " << output[1] << " expected " << expected[1] <<  std::endl ; 
+       std::cout << "output " << output[2] << " expected " << expected[2] <<  std::endl ; 
+       std::cout << "output " << output[3] << " expected " << expected[3] <<  std::endl ; 
+       std::cout << "output " << output[4] << " expected " << expected[4] <<  std::endl ; 
+
+
+     */
 
 
     results[0] = (output[0] == expected[0]) ? 1.0 : 0.0;
