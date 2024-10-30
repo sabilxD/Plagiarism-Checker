@@ -2,7 +2,7 @@
 #include <iostream>
 #include <span>
 #include <vector>
-#include <math.h> 
+#include <> 
 // -----------------------------------------------------------------------------
 
 // You are free to add any STL includes above this comment, below the --line--.
