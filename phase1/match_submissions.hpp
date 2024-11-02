@@ -137,7 +137,7 @@ bool longestApproximateMatch(const std::vector<int>& vec1, const std::vector<int
 
 
 
-void update( int&curr_match  , int&total_length_match, int&min_length , int&i , int &j , std::unordered_map<int , int>&match_length , std::vector<bool>&match_at_index , std::vector<bool>&match_at_index2)  {
+void update( int&curr_match  , int&total_length_match, int&min_length , int&i , int &j , std::unordered_map<int , int>&match_length , std::vector<bool>&match_at_index_i , std::vector<bool>&match_at_index_j)  {
 
     if ( curr_match >= min_length) { 
 
@@ -152,11 +152,11 @@ void update( int&curr_match  , int&total_length_match, int&min_length , int&i , 
             std::cout << " match found at " << i << " " << j << " of length: " << curr_match << " " << increment << std::endl ;
 
             for ( int idx = i ; idx < i + curr_match ; idx++ ) { 
-                match_at_index[idx] = true ;
+                match_at_index_i[idx] = true ;
             }
 
             for ( int idx = j ; idx < j + curr_match ; idx++ ) { 
-                match_at_index2[idx] = true ;
+                match_at_index_j[idx] = true ;
             }
         }
     }
@@ -168,16 +168,16 @@ void update( int&curr_match  , int&total_length_match, int&min_length , int&i , 
 
 
 
-void match ( std::vector<int> &submission1 , std::vector<int> &submission2 , std::vector<bool> &match_at_index_i , std::vector<bool> &match_at_index_j , std::unordered_map<int , int> &match_length_at_i , int &min_length , int &total_length_match ) { 
+void match ( std::vector<int> &submission1 , std::vector<int> &submission2 , std::vector<bool> &match_at_index_i , std::vector<bool> &match_at_index_j , std::unordered_map<int , int> &match_length_at_i , int &min_length , int &total_match_length ) { 
 
 
     for ( int i  = 0 ; i< submission1.size() ; i++) { 
         
-        if ( match_at_index[i] ) continue ;
+        if ( match_at_index_i[i] ) continue ;
 
         for ( int j = 0 ; j < submission2.size() ; j++ ) { 
             
-            if ( match_at_index2[j] ) continue ;
+            if ( match_at_index_j[j] ) continue ;
 
             //current running match's length
             int curr_match = 0 ; 
@@ -189,7 +189,7 @@ void match ( std::vector<int> &submission1 , std::vector<int> &submission2 , std
                     curr_match++ ;
 
                     if ( l == std::min(M ,20) - 1 ) { 
-                        update(curr_match , total_length_match, min_length , i , j , match_length , match_at_index , match_at_index2)  ;
+                        update(curr_match , total_match_length, min_length , i , j , match_length_at_i , match_at_index_i , match_at_index_j)  ;
                         j = j + l ;
                         break ;
                     }
@@ -197,7 +197,7 @@ void match ( std::vector<int> &submission1 , std::vector<int> &submission2 , std
                 }
                 
                 else { 
-                    update(curr_match , total_length_match, min_length , i , j , match_length , match_at_index , match_at_index2)  ;
+                        update(curr_match , total_match_length, min_length , i , j , match_length_at_i , match_at_index_i , match_at_index_j)  ;
                     j = j + l ;
                     break ;                  
                 }
@@ -220,7 +220,7 @@ void match ( std::vector<int> &submission1 , std::vector<int> &submission2 , std
 
 
 
-void accurate_matching( std::array<int,5> result, std::vector<int> &submission1 , std::vector<int> &submission2  ) { 
+void accurate_matching( std::array<int,5> &result, std::vector<int> &submission1 , std::vector<int> &submission2  ) { 
 
     int min_length = 10 ; 
     int total_length_match = 0 ; 
@@ -257,6 +257,9 @@ std::array<int, 5> match_submissions(std::vector<int> &submission1,
         std::vector<int> &submission2) {
     // TODO: Write your code here
     std::array<int, 5> result = {0, 0, 0, 0, 0};
+
+
+
 
 
     /*----------------------------uncomment for debugging----------------------
@@ -300,6 +303,10 @@ std::array<int, 5> match_submissions(std::vector<int> &submission1,
     // std::cout << longestMatch << std::endl ;
     // std::cout << submission1.size() << std::endl ;
     // std::cout << submission2.size() << std::endl ;
+
+
+
+
     return result;
     // End TODO
 
