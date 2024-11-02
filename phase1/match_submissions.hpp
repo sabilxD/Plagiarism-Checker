@@ -184,5 +184,3 @@ std::array<int, 5> match_submissions(std::vector<int> &submission1,
     // End TODO
 
 }      
-
-
