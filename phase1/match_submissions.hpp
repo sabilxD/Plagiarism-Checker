@@ -195,55 +195,49 @@ void accurate_optimized(std::array<int, 5>& result_accurate, std::vector<int>& s
 }
 
 //Fuzzy algorithm using lavenshtein
+
+
 void fuzzy_approximate_match(std::array<int, 5>& result_accurate, std::vector<int>& submission1, std::vector<int>& submission2, int max_mismatches) {
     int n = submission1.size();
     int m = submission2.size();
-    int longest_fuzzy_match = 0; // Track longest fuzzy match regardless of overlap
-    int total_length_non_overlap = 0; // Total length of non-overlapping matches in range [10, 20]
+    int longest_fuzzy_match = 0; // Track the longest fuzzy match
     int index_i = -1;
     int index_j = -1;
-    int last_end_index1 = -1; // End index of the last counted match in submission1
-    int last_end_index2 = -1; // End index of the last counted match in submission2
-    
-    // 2D DP table to store lengths of fuzzy matches
-    std::vector<std::vector<int>> dp(n + 1, std::vector<int>(m + 1, 0));
 
     // Iterate through both vectors
-    for (int i = 1; i <= n; ++i) {
-        for (int j = 1; j <= m; ++j) {
-            int curr_match = 0;
+    for (int i = 0; i < n; ++i) {
+        for (int j = 0; j < m; ++j) {
+            int curr_match_length = 0;
             int mismatches = 0;
-            
-            // If elements match, extend match length
-            if (submission1[i - 1] == submission2[j - 1]) {
-                dp[i][j] = dp[i - 1][j - 1] + 1;
-            } else {
-                // Allow mismatch up to max_mismatches
-                dp[i][j] = dp[i - 1][j - 1] + 1; // Consider mismatch as continuation of match
-                mismatches++;
-            }
-            // Check if current match satisfies mismatch tolerance
-            if (mismatches <= max_mismatches) {
-                curr_match = dp[i][j];
-                total_length_non_overlap+=curr_match;
-                // Update longest match information if current match is longer
-                if (curr_match > longest_fuzzy_match) {
-                    longest_fuzzy_match = curr_match;
-                    index_i = i - curr_match;
-                    index_j = j - curr_match;
+
+            // Check for matches starting from indices i and j
+            int x = i, y = j;
+            while (x < n && y < m && mismatches <= max_mismatches) {
+                if (submission1[x] != submission2[y]) {
+                    mismatches++;
                 }
-            } else {
-                dp[i][j] = 0;  // Reset match length if mismatches exceed tolerance
+                if (mismatches > max_mismatches) {
+                    break;
+                }
+                curr_match_length++;
+                x++;
+                y++;
             }
+            if (curr_match_length > longest_fuzzy_match) {
+                    longest_fuzzy_match = curr_match_length;
+                    index_i = i;
+                    index_j = j;
+                }
         }
     }
+
     // Store results
     result_accurate[1] = total_length(submission1,submission2);
     result_accurate[2] = longest_fuzzy_match;
     result_accurate[3] = index_i;
     result_accurate[4] = index_j;
 
-    if (double(total_length_non_overlap) / m > 0.5) {
+    if (double(result_accurate[1]) / m > 0.5) {
         result_accurate[0] = 1;
     }
 }
