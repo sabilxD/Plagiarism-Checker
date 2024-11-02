@@ -4,6 +4,7 @@
 #include <vector>
 #include <math.h> 
 #include <unordered_set>
+#include <unordered_map>
 // -----------------------------------------------------------------------------
 
 // You are free to add any STL includes above this comment, below the --line--.
@@ -12,7 +13,10 @@
 
 // OPTIONAL: Add your helper functions and data structures here
 
+const int BASE = 257; 
+const int MOD = 1e9 + 7;
 
+//Helper function for updating
 void update(int &index_i , int&index_j , int&curr_match , int&longest_match , int&total_length_match, int&min_length , int&i , int &j) {
 
     if ( curr_match >= min_length) { 
@@ -30,6 +34,7 @@ void update(int &index_i , int&index_j , int&curr_match , int&longest_match , in
     
 }
 
+//This is brute force for accurate matching
 void accurate(std::array<int,5>& result_accurate,std::vector<int> &submission1, 
         std::vector<int> &submission2){
     int min_length = 10 ; 
@@ -98,7 +103,132 @@ void accurate(std::array<int,5>& result_accurate,std::vector<int> &submission1,
     }
 }
 
-const int MOD = 1000000007;
+
+// This is optimized algorithm for accurate matches using rolling hash
+int calculate_hash(const std::vector<int>& vec, int start, int len) {
+    int hash = 0;
+    int power = 1;
+    for (int i = start; i < start + len; ++i) {
+        hash = (hash + 1LL * vec[i] * power % MOD) % MOD;
+        power = (1LL * power * BASE) % MOD;
+    }
+    return hash;
+}
+
+void accurate_optimized(std::array<int, 5>& result_accurate, std::vector<int>& submission1, std::vector<int>& submission2) {
+    int min_length = 10;
+    int total_length_match = 0;
+    int longest_match = 0;
+    int index_i = -1;
+    int index_j = -1;
+
+    std::unordered_map<int, std::vector<int>> hash_map;
+
+    // Compute hashes for all starting positions in submission1 for `min_length` substrings
+    for (int i = 0; i + min_length <= submission1.size(); ++i) {
+        int hash = calculate_hash(submission1, i, min_length);
+        hash_map[hash].push_back(i);
+    }
+
+    // Try matching each `min_length` substring in submission2 with entries in submission1
+    for (int j = 0; j + min_length <= submission2.size(); ++j) {
+        int hash = calculate_hash(submission2, j, min_length);
+
+        if (hash_map.find(hash) != hash_map.end()) {
+            for (int i : hash_map[hash]) {
+                int curr_match =0;
+
+                // Extend the match beyond `min_length` if possible
+                while (i + curr_match < submission1.size() && j + curr_match < submission2.size()
+                       && submission1[i + curr_match] == submission2[j + curr_match]) {
+                    curr_match++;
+                }
+
+                // Update match statistics
+                update(index_i, index_j, curr_match, longest_match, total_length_match, min_length, i, j);
+            }
+        }
+    }
+
+    result_accurate[1] = total_length_match;
+    result_accurate[2] = longest_match;
+    result_accurate[3] = index_i;
+    result_accurate[4] = index_j;
+
+    if (double(total_length_match) / submission2.size() > 0.5) {
+        result_accurate[0] = 1;
+    }
+}
+
+//Fuzzy algorithm using lavenshtein
+void fuzzy_approximate_match(std::array<int, 5>& result_accurate, std::vector<int>& submission1, std::vector<int>& submission2, int max_mismatches) {
+    int n = submission1.size();
+    int m = submission2.size();
+    int longest_match = 0;
+    int total_length_match = 0;
+    int index_i = -1;
+    int index_j = -1;
+    bool in_match = false; // Tracks if we're in an ongoing match sequence
+    
+    // 2D DP table to store lengths of fuzzy matches
+    std::vector<std::vector<int>> dp(n + 1, std::vector<int>(m + 1, 0));
+
+    // Iterate through both vectors
+    for (int i = 1; i <= n; ++i) {
+        for (int j = 1; j <= m; ++j) {
+            int curr_match = 0;
+            int mismatches = 0;
+            
+            // If elements match, extend match length
+            if (submission1[i - 1] == submission2[j - 1]) {
+                dp[i][j] = dp[i - 1][j - 1] + 1;
+            } else {
+                // Allow mismatch up to max_mismatches
+                dp[i][j] = dp[i - 1][j - 1] + 1; // Consider mismatch as continuation of match
+                mismatches++;
+            }
+            
+
+            // Check if current match satisfies mismatch tolerance
+            if (mismatches <= max_mismatches) {
+                curr_match = dp[i][j];
+                // Update total match length for patterns of length 10-20
+                if (curr_match >= 10 && curr_match <= 20) {
+                    total_length_match += curr_match;
+                }
+                // For matches longer than 20, count in segments of 20
+                else if (curr_match > 20) {
+                    total_length_match += 20 * (curr_match / 20);
+                    int remaining = curr_match % 20;
+                    if (remaining >= 10) {
+                        total_length_match += remaining;
+                    }
+                }
+                // Update longest match information if current match is longer
+                if (curr_match > longest_match) {
+                    longest_match = curr_match;
+                    index_i = i - curr_match;
+                    index_j = j - curr_match;
+                }
+                // total_length_match += curr_match;
+            } else {
+                dp[i][j] = 0;  // Reset match length if mismatches exceed tolerance
+            }
+        }
+    }
+
+    // Store results
+    result_accurate[1] = total_length_match;
+    result_accurate[2] = longest_match;
+    result_accurate[3] = index_i;
+    result_accurate[4] = index_j;
+
+    if (double(total_length_match) / m > 0.5) {
+        result_accurate[0] = 1;
+    }
+}
+
+//Tried for approximate matches using winnowing and rolling hash
 int hashWindow(const std::vector<int>& vec, int start, int windowSize) {
     int hash = 0;
     for (int i = start; i < start + windowSize; ++i) {
@@ -135,6 +265,7 @@ bool longestApproximateMatch(const std::vector<int>& vec1, const std::vector<int
     return matchLength;
 }
 
+// Calling main function
 std::array<int, 5> match_submissions(std::vector<int> &submission1, 
         std::vector<int> &submission2) {
     // TODO: Write your code here
@@ -153,8 +284,8 @@ std::array<int, 5> match_submissions(std::vector<int> &submission1,
 
     //------------------------------------------------------------------------*/
     //checking for short length matchings for accurate subsequence matchings first
-    accurate(result_accurate,submission1,submission2);
-
+    // accurate(result_accurate,submission1,submission2);
+    // accurate_optimized(result_accurate,submission1,submission2);
     // now we have the longest match and the total length of matches
 
 
@@ -165,15 +296,16 @@ std::array<int, 5> match_submissions(std::vector<int> &submission1,
     int windowSize = 10; 
     int longestMatch;
     longestApproximateMatch(submission1, submission2, windowSize,longestMatch);
-    int threshold = std::fmax(submission1.size(), submission2.size()) * 0.8;
-    
+    // std::cout<<longestMatch<<std::endl;
+    int threshold = std::fmax(submission1.size(), submission2.size()) * 0.2;
+    fuzzy_approximate_match(result_accurate,submission1,submission2,threshold);
 
     
     /*----------------------------------------------------------------*/
 
 
-    if(longestMatch>=threshold) result_accurate[0]=1;
-    if(longestMatch>=result_accurate[2]) result_accurate[2]=longestMatch;
+    // if(longestMatch>=threshold) result_accurate[0]=1;
+    // if(longestMatch>=result_accurate[2]) result_accurate[2]=longestMatch;
     // else result_accurate[2]=longest_match;
     // result_accurate[2]=longestMatch;
     // std::cout << result_accurate[2] << std::endl ;
