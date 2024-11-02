@@ -34,6 +34,40 @@ void update(int &index_i , int&index_j , int&curr_match , int&longest_match , in
     
 }
 
+int total_length(std::vector<int>& submission1, std::vector<int>& submission2) {
+    int n = submission1.size();
+    int m = submission2.size();
+    int total_length_match = 0; // Total length of non-overlapping accurate matches of length 10-20
+    int last_end_index1 = -1; // End index of the last counted non-overlapping match in submission1
+    int last_end_index2 = -1; // End index of the last counted non-overlapping match in submission2
+
+    // Iterate through both vectors
+    for (int i = 0; i < n; ++i) {
+        for (int j = 0; j < m; ++j) {
+            int curr_match_length = 0;
+
+            // Check for matches starting from indices i in submission1 and j in submission2
+            while (i + curr_match_length < n && j + curr_match_length < m &&
+                   submission1[i + curr_match_length] == submission2[j + curr_match_length]) {
+                curr_match_length++;
+            }
+
+            // Check if the current match is of length between 10 and 20 and non-overlapping
+            if (curr_match_length >= 10 && curr_match_length <= 20 && 
+                i > last_end_index1 ) {
+                
+                total_length_match += curr_match_length;
+
+                // Update last_end_index to prevent overlaps
+                last_end_index1 = i + curr_match_length - 1; // End of current match in submission1
+            }
+            
+        }
+    }
+
+    return total_length_match;
+}
+
 //This is brute force for accurate matching
 void accurate(std::array<int,5>& result_accurate,std::vector<int> &submission1, 
         std::vector<int> &submission2){
@@ -150,7 +184,7 @@ void accurate_optimized(std::array<int, 5>& result_accurate, std::vector<int>& s
         }
     }
 
-    result_accurate[1] = total_length_match;
+    result_accurate[1] = total_length(submission1,submission2);
     result_accurate[2] = longest_match;
     result_accurate[3] = index_i;
     result_accurate[4] = index_j;
@@ -164,11 +198,12 @@ void accurate_optimized(std::array<int, 5>& result_accurate, std::vector<int>& s
 void fuzzy_approximate_match(std::array<int, 5>& result_accurate, std::vector<int>& submission1, std::vector<int>& submission2, int max_mismatches) {
     int n = submission1.size();
     int m = submission2.size();
-    int longest_match = 0;
-    int total_length_match = 0;
+    int longest_fuzzy_match = 0; // Track longest fuzzy match regardless of overlap
+    int total_length_non_overlap = 0; // Total length of non-overlapping matches in range [10, 20]
     int index_i = -1;
     int index_j = -1;
-    bool in_match = false; // Tracks if we're in an ongoing match sequence
+    int last_end_index1 = -1; // End index of the last counted match in submission1
+    int last_end_index2 = -1; // End index of the last counted match in submission2
     
     // 2D DP table to store lengths of fuzzy matches
     std::vector<std::vector<int>> dp(n + 1, std::vector<int>(m + 1, 0));
@@ -187,43 +222,28 @@ void fuzzy_approximate_match(std::array<int, 5>& result_accurate, std::vector<in
                 dp[i][j] = dp[i - 1][j - 1] + 1; // Consider mismatch as continuation of match
                 mismatches++;
             }
-            
-
             // Check if current match satisfies mismatch tolerance
             if (mismatches <= max_mismatches) {
                 curr_match = dp[i][j];
-                // Update total match length for patterns of length 10-20
-                if (curr_match >= 10 && curr_match <= 20) {
-                    total_length_match += curr_match;
-                }
-                // For matches longer than 20, count in segments of 20
-                else if (curr_match > 20) {
-                    total_length_match += 20 * (curr_match / 20);
-                    int remaining = curr_match % 20;
-                    if (remaining >= 10) {
-                        total_length_match += remaining;
-                    }
-                }
+                total_length_non_overlap+=curr_match;
                 // Update longest match information if current match is longer
-                if (curr_match > longest_match) {
-                    longest_match = curr_match;
+                if (curr_match > longest_fuzzy_match) {
+                    longest_fuzzy_match = curr_match;
                     index_i = i - curr_match;
                     index_j = j - curr_match;
                 }
-                // total_length_match += curr_match;
             } else {
                 dp[i][j] = 0;  // Reset match length if mismatches exceed tolerance
             }
         }
     }
-
     // Store results
-    result_accurate[1] = total_length_match;
-    result_accurate[2] = longest_match;
+    result_accurate[1] = total_length(submission1,submission2);
+    result_accurate[2] = longest_fuzzy_match;
     result_accurate[3] = index_i;
     result_accurate[4] = index_j;
 
-    if (double(total_length_match) / m > 0.5) {
+    if (double(total_length_non_overlap) / m > 0.5) {
         result_accurate[0] = 1;
     }
 }
@@ -295,11 +315,10 @@ std::array<int, 5> match_submissions(std::vector<int> &submission1,
     
     int windowSize = 10; 
     int longestMatch;
-    longestApproximateMatch(submission1, submission2, windowSize,longestMatch);
+    // longestApproximateMatch(submission1, submission2, windowSize,longestMatch);
     // std::cout<<longestMatch<<std::endl;
     int threshold = std::fmax(submission1.size(), submission2.size()) * 0.2;
     fuzzy_approximate_match(result_accurate,submission1,submission2,threshold);
-
     
     /*----------------------------------------------------------------*/
 

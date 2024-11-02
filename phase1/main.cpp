@@ -28,13 +28,10 @@ void execute_and_verify_testcase(std::string test_dir) {
 }
 
 int main(void) {
-
     std::cout<<"Testcase 1: "<<std::endl;
     execute_and_verify_testcase("testcases/one");
-
     std::cout<<"Testcase 2: "<<std::endl;
     execute_and_verify_testcase("testcases/two");
-
     std::cout<<"Testcase 3: "<<std::endl;
     execute_and_verify_testcase("testcases/three");
     return 0;
