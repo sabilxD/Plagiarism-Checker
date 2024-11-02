@@ -3,6 +3,7 @@
 #include <span>
 #include <vector>
 #include <math.h> 
+#include <unordered_set>
 // -----------------------------------------------------------------------------
 
 // You are free to add any STL includes above this comment, below the --line--.
@@ -29,33 +30,8 @@ void update(int &index_i , int&index_j , int&curr_match , int&longest_match , in
     
 }
 
-
-std::array<int, 5> match_submissions(std::vector<int> &submission1, 
-        std::vector<int> &submission2) {
-    // TODO: Write your code here
-    std::array<int, 5> result = {0, 0, 0, 0, 0};
-
-    
-    
-    
-    /*----------------------------uncomment for debugging----------------------
-    
-    // for ( int i = 0 ; i < submission1.size() ; i++) { 
-    //     std::cout << i << " "<< submission1[i]  << std::endl; 
-    // }
-
-    // for ( int i = 0 ; i < submission2.size() ; i++) { 
-    //     std::cout << i << " "<< submission2[i]  << std::endl; 
-    // }
-
-
-    ------------------------------------------------------------------------*/
-
-
-
-
-
-    //checking for short length matchings for accurate subsequence matchings first
+void accurate(std::array<int,5>& result_accurate,std::vector<int> &submission1, 
+        std::vector<int> &submission2){
     int min_length = 10 ; 
 
     int total_length_match = 0 ; 
@@ -112,6 +88,72 @@ std::array<int, 5> match_submissions(std::vector<int> &submission1,
         }
 
     }
+    result_accurate[1] = total_length_match ;
+    result_accurate[2] = longest_match ;
+    result_accurate[3] = index_i ;
+    result_accurate[4] = index_j ;
+
+    if ( double(total_length_match)/submission2.size() > 0.5 ) { 
+        result_accurate[0] = 1 ; 
+    }
+}
+
+const int MOD = 1000000007;
+int hashWindow(const std::vector<int>& vec, int start, int windowSize) {
+    int hash = 0;
+    for (int i = start; i < start + windowSize; ++i) {
+        hash = (1LL * hash * 31 + vec[i]) % MOD;
+    }
+    return hash;
+}
+
+std::unordered_set<int> winnowing(const std::vector<int>& vec, int windowSize) {
+    std::unordered_set<int> fingerprints;
+    int n = vec.size();
+    
+    // Loop over the vector with a sliding window
+    for (int i = 0; i <= n - windowSize; ++i) {
+        int hashValue = hashWindow(vec, i, windowSize);
+        fingerprints.insert(hashValue); // Store the minimum hash in each window
+    }
+    return fingerprints;
+}
+
+bool longestApproximateMatch(const std::vector<int>& vec1, const std::vector<int>& vec2, int windowSize, int& matchLength) {
+    std::unordered_set<int> fingerprints1 = winnowing(vec1, windowSize);
+    std::unordered_set<int> fingerprints2 = winnowing(vec2, windowSize);
+
+    // Find the common fingerprints
+    std::vector<int> commonFingerprints;
+    for (const int& fp : fingerprints1) {
+        if (fingerprints2.find(fp) != fingerprints2.end()) {
+            commonFingerprints.push_back(fp);
+        }
+    }
+    
+    matchLength = commonFingerprints.size();
+    return matchLength;
+}
+
+std::array<int, 5> match_submissions(std::vector<int> &submission1, 
+        std::vector<int> &submission2) {
+    // TODO: Write your code here
+    std::array<int, 5> result_accurate = {0, 0, 0, 0, 0};
+
+    //----------------------------uncomment for debugging----------------------
+    
+    // for ( int i = 0 ; i < submission1.size() ; i++) { 
+    //     std::cout << i << " "<< submission1[i]  << std::endl; 
+    // }
+
+    // for ( int i = 0 ; i < submission2.size() ; i++) { 
+    //     std::cout << i << " "<< submission2[i]  << std::endl; 
+    // }
+
+
+    //------------------------------------------------------------------------*/
+    //checking for short length matchings for accurate subsequence matchings first
+    accurate(result_accurate,submission1,submission2);
 
     // now we have the longest match and the total length of matches
 
@@ -120,29 +162,25 @@ std::array<int, 5> match_submissions(std::vector<int> &submission1,
     /* Aditi and aakash please write the case for longer strings with 80% matchings here ie fuzzy matching and stuff ;)*/
     
     
-        
-    
-    
-    
+    int windowSize = 10; 
+    int longestMatch;
+    longestApproximateMatch(submission1, submission2, windowSize,longestMatch);
+    int threshold = std::fmax(submission1.size(), submission2.size()) * 0.8;
     
 
     
     /*----------------------------------------------------------------*/
 
 
-
-
-    result[1] = total_length_match ;
-    result[2] = longest_match ;
-    result[3] = index_i ;
-    result[4] = index_j ;
-
-    if ( double(total_length_match)/submission2.size() > 0.5 ) { 
-        result[0] = 1 ; 
-    }
+    if(longestMatch>=threshold) result_accurate[0]=1;
+    if(longestMatch>=result_accurate[2]) result_accurate[2]=longestMatch;
+    // else result_accurate[2]=longest_match;
+    // result_accurate[2]=longestMatch;
+    // std::cout << result_accurate[2] << std::endl ;
+    // std::cout << longestMatch << std::endl ;
     // std::cout << submission1.size() << std::endl ;
     // std::cout << submission2.size() << std::endl ;
-    return result; // dummy return
+    return result_accurate;
     // End TODO
 
 }      
