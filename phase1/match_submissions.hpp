@@ -17,91 +17,7 @@ const int BASE = 257;
 const int MOD = 1e9 + 7;
 
 //Helper function for updating
-void update(int &index_i , int&index_j , int&curr_match , int&longest_match , int&total_length_match, int&min_length , int&i , int &j) {
 
-    if ( curr_match >= min_length) { 
-        total_length_match += curr_match ;
-        // std::cout << " match found at " << i << " " << j << " length: " << curr_match << std::endl ;
-    }
-    
-    if ( curr_match > longest_match ) { 
-        longest_match = curr_match ; 
-        index_i = i ; 
-        index_j = j ; 
-    }
-    
-    curr_match = 0 ;
-    
-}
-
-//This is brute force for accurate matching
-void accurate(std::array<int,5>& result_accurate,std::vector<int> &submission1, 
-        std::vector<int> &submission2){
-    int min_length = 10 ; 
-
-    int total_length_match = 0 ; 
-    int longest_match = 0 ; 
-    int index_i = -1 ;
-    int index_j = -1 ;
-    
-
-    //stores whether the a match has occured at from index i in submission1 and index j in submission2
-    std::vector<bool> match_at_index(submission1.size()*submission2.size() , false) ;
-
-
-
-    //this loop checks for a match starting at index i and index j in submission1 and submission2 respectively
-    for ( int i  = 0 ; i< submission1.size() ; i++) { 
-        for ( int j = 0 ; j < submission2.size() ; j++ ) { 
-
-
-            //if a match has already been found at this index, skip this iteration
-            if ( match_at_index[i*submission2.size() + j] ) continue ;
-            
-
-            //current running match's length
-            int curr_match = 0 ; 
-
-
-            for ( int l = 0 ; l < std::min(submission1.size() - i , submission2.size() - j) ; l++ ) { 
-                
-                if ( submission1[i+l] == submission2[j+l] ) { 
-
-                    match_at_index[(i+l)*submission2.size() + j+l ] = true ;
-                    curr_match++ ;
-
-                    /*if the match is of length min_length, then we cover it here as it will not be covered as
-                    we skip to the next j and set curr_match to 0 and the this current matching gets lost
-                    */
-                    int last_index = std::min(submission1.size() - i , submission2.size() - j) - 1 ;
-                    bool last = ( l == last_index) ;
-                    if (last) {
-                        update(index_i , index_j , curr_match , longest_match , total_length_match, min_length , i , j ) ;
-                    }
-
-                }
-                
-                else { 
-                    update(index_i , index_j , curr_match , longest_match , total_length_match, min_length , i , j ) ;
-                    break ;  
-                
-                }
-
-            }
-
-
-        }
-
-    }
-    result_accurate[1] = total_length_match ;
-    result_accurate[2] = longest_match ;
-    result_accurate[3] = index_i ;
-    result_accurate[4] = index_j ;
-
-    if ( double(total_length_match)/submission2.size() > 0.5 ) { 
-        result_accurate[0] = 1 ; 
-    }
-}
 
 
 // This is optimized algorithm for accurate matches using rolling hash
@@ -115,50 +31,6 @@ int calculate_hash(const std::vector<int>& vec, int start, int len) {
     return hash;
 }
 
-void accurate_optimized(std::array<int, 5>& result_accurate, std::vector<int>& submission1, std::vector<int>& submission2) {
-    int min_length = 10;
-    int total_length_match = 0;
-    int longest_match = 0;
-    int index_i = -1;
-    int index_j = -1;
-
-    std::unordered_map<int, std::vector<int>> hash_map;
-
-    // Compute hashes for all starting positions in submission1 for `min_length` substrings
-    for (int i = 0; i + min_length <= submission1.size(); ++i) {
-        int hash = calculate_hash(submission1, i, min_length);
-        hash_map[hash].push_back(i);
-    }
-
-    // Try matching each `min_length` substring in submission2 with entries in submission1
-    for (int j = 0; j + min_length <= submission2.size(); ++j) {
-        int hash = calculate_hash(submission2, j, min_length);
-
-        if (hash_map.find(hash) != hash_map.end()) {
-            for (int i : hash_map[hash]) {
-                int curr_match =0;
-
-                // Extend the match beyond `min_length` if possible
-                while (i + curr_match < submission1.size() && j + curr_match < submission2.size()
-                       && submission1[i + curr_match] == submission2[j + curr_match]) {
-                    curr_match++;
-                }
-
-                // Update match statistics
-                update(index_i, index_j, curr_match, longest_match, total_length_match, min_length, i, j);
-            }
-        }
-    }
-
-    result_accurate[1] = total_length_match;
-    result_accurate[2] = longest_match;
-    result_accurate[3] = index_i;
-    result_accurate[4] = index_j;
-
-    if (double(total_length_match) / submission2.size() > 0.5) {
-        result_accurate[0] = 1;
-    }
-}
 
 //Fuzzy algorithm using lavenshtein
 void fuzzy_approximate_match(std::array<int, 5>& result_accurate, std::vector<int>& submission1, std::vector<int>& submission2, int max_mismatches) {
@@ -218,14 +90,10 @@ void fuzzy_approximate_match(std::array<int, 5>& result_accurate, std::vector<in
     }
 
     // Store results
-    result_accurate[1] = total_length_match;
     result_accurate[2] = longest_match;
     result_accurate[3] = index_i;
     result_accurate[4] = index_j;
 
-    if (double(total_length_match) / m > 0.5) {
-        result_accurate[0] = 1;
-    }
 }
 
 //Tried for approximate matches using winnowing and rolling hash
@@ -265,43 +133,163 @@ bool longestApproximateMatch(const std::vector<int>& vec1, const std::vector<int
     return matchLength;
 }
 
+
+
+
+
+void update( int&curr_match  , int&total_length_match, int&min_length , int&i , int &j , std::unordered_map<int , int>&match_length , std::vector<bool>&match_at_index , std::vector<bool>&match_at_index2)  {
+
+    if ( curr_match >= min_length) { 
+
+        if ( match_length[i] < curr_match ) { 
+
+            int increment = curr_match - match_length[i] ;
+            
+            total_length_match +=  increment ;
+            
+            match_length[i] = curr_match ;
+
+            std::cout << " match found at " << i << " " << j << " of length: " << curr_match << " " << increment << std::endl ;
+
+            for ( int idx = i ; idx < i + curr_match ; idx++ ) { 
+                match_at_index[idx] = true ;
+            }
+
+            for ( int idx = j ; idx < j + curr_match ; idx++ ) { 
+                match_at_index2[idx] = true ;
+            }
+        }
+    }
+
+    curr_match = 0 ;
+
+}
+
+
+
+
+void match ( std::vector<int> &submission1 , std::vector<int> &submission2 , std::vector<bool> &match_at_index_i , std::vector<bool> &match_at_index_j , std::unordered_map<int , int> &match_length_at_i , int &min_length , int &total_length_match ) { 
+
+
+    for ( int i  = 0 ; i< submission1.size() ; i++) { 
+        
+        if ( match_at_index[i] ) continue ;
+
+        for ( int j = 0 ; j < submission2.size() ; j++ ) { 
+            
+            if ( match_at_index2[j] ) continue ;
+
+            //current running match's length
+            int curr_match = 0 ; 
+
+            int M = std::min(submission1.size() - i , submission2.size() - j) ;
+            for ( int l = 0 ; l < std::min(M ,20) ; l++ ) { 
+                
+                if ( submission1[i+l] == submission2[j+l] ) { 
+                    curr_match++ ;
+
+                    if ( l == std::min(M ,20) - 1 ) { 
+                        update(curr_match , total_length_match, min_length , i , j , match_length , match_at_index , match_at_index2)  ;
+                        j = j + l ;
+                        break ;
+                    }
+
+                }
+                
+                else { 
+                    update(curr_match , total_length_match, min_length , i , j , match_length , match_at_index , match_at_index2)  ;
+                    j = j + l ;
+                    break ;                  
+                }
+
+            }
+
+
+        }
+
+    }   
+
+
+}
+
+
+
+
+
+
+
+
+
+void accurate_matching( std::array<int,5> result, std::vector<int> &submission1 , std::vector<int> &submission2  ) { 
+
+    int min_length = 10 ; 
+    int total_length_match = 0 ; 
+   
+    std::vector<bool> match_at_index_i(submission1.size() , false) ;
+    std::vector<bool> match_at_index_j(submission2.size() , false) ;
+
+    std::unordered_map<int , int> match_length_at_i ;
+
+    match( submission1 , submission2 , match_at_index_i , match_at_index_j , match_length_at_i , min_length , total_length_match ) ;
+
+    
+    result[1] = total_length_match ;
+    if ( double(total_length_match)/submission2.size() > 0.5 ) { 
+        result[0] = 1 ; 
+    }
+
+    
+
+    return ;
+}
+
+
+
+
+
+
+
+
+
+
 // Calling main function
 std::array<int, 5> match_submissions(std::vector<int> &submission1, 
         std::vector<int> &submission2) {
     // TODO: Write your code here
-    std::array<int, 5> result_accurate = {0, 0, 0, 0, 0};
+    std::array<int, 5> result = {0, 0, 0, 0, 0};
 
-    //----------------------------uncomment for debugging----------------------
+
+    /*----------------------------uncomment for debugging----------------------
     
-    // for ( int i = 0 ; i < submission1.size() ; i++) { 
-    //     std::cout << i << " "<< submission1[i]  << std::endl; 
-    // }
+     for ( int i = 0 ; i < submission1.size() ; i++) { 
+         std::cout << i << " "<< submission1[i]  << std::endl; 
+     }
 
-    // for ( int i = 0 ; i < submission2.size() ; i++) { 
-    //     std::cout << i << " "<< submission2[i]  << std::endl; 
-    // }
+     for ( int i = 0 ; i < submission2.size() ; i++) { 
+         std::cout << i << " "<< submission2[i]  << std::endl; 
+     }
 
 
-    //------------------------------------------------------------------------*/
-    //checking for short length matchings for accurate subsequence matchings first
-    // accurate(result_accurate,submission1,submission2);
-    // accurate_optimized(result_accurate,submission1,submission2);
-    // now we have the longest match and the total length of matches
+    ------------------------------------------------------------------------*/
+
+
+
+
+    //Accurate matching
+    accurate_matching( result , submission1 , submission2 ) ;
+
 
 
 
     /* Aditi and aakash please write the case for longer strings with 80% matchings here ie fuzzy matching and stuff ;)*/
-    
-    
     int windowSize = 10; 
-    int longestMatch;
-    longestApproximateMatch(submission1, submission2, windowSize,longestMatch);
-    // std::cout<<longestMatch<<std::endl;
     int threshold = std::fmax(submission1.size(), submission2.size()) * 0.2;
-    fuzzy_approximate_match(result_accurate,submission1,submission2,threshold);
+        
+    fuzzy_approximate_match(result,submission1,submission2,threshold);
 
     
     /*----------------------------------------------------------------*/
+
 
 
     // if(longestMatch>=threshold) result_accurate[0]=1;
@@ -312,7 +300,7 @@ std::array<int, 5> match_submissions(std::vector<int> &submission1,
     // std::cout << longestMatch << std::endl ;
     // std::cout << submission1.size() << std::endl ;
     // std::cout << submission2.size() << std::endl ;
-    return result_accurate;
+    return result;
     // End TODO
 
 }      
