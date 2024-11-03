@@ -16,70 +16,61 @@
 const int BASE = 257; 
 const int MOD = 1e9 + 7;
 
-//Fuzzy algorithm using lavenshtein
-void fuzzy_approximate_match(std::array<int, 5>& result_accurate, std::vector<int>& submission1, std::vector<int>& submission2, int max_mismatches) {
+//Fuzzy algorithm
+void fuzzy_approx (std::array<int, 5>& result_accurate, std::vector<int>& submission1, std::vector<int>& submission2, int max_mismatches) {
     int n = submission1.size();
     int m = submission2.size();
     int longest_fuzzy_match = 0; // Track the longest fuzzy match
     int index_i = -1;
     int index_j = -1;
 
-    // Iterate through both vectors
+
    for (int i = 0; i < n; ++i) {
         for (int j = 0; j < m; ++j) {
-            int curr_match_length = 0;
             int mismatches = 0;
-            int last_valid_length = 0;
-
+            int matches = 0 ; 
             // Check for matches starting from indices i and j
             int x = i, y = j;
+
             while (x < n && y < m) {
+
                 if (submission1[x] != submission2[y]) {
                     mismatches++;
+                    y++ ;
+                }
+                else { 
+                    x++ ;
+                    y++ ;
+                    matches++ ;
                 }
 
-                // Check mismatch rate condition
-                if (curr_match_length > 30 && mismatches > 0 && curr_match_length-mismatches!=0) {
-                    int mismatch_rate = (mismatches * 100) / (curr_match_length - mismatches);
-                    if (mismatch_rate > max_mismatches) {
-                        // Allow matching for an extra threshold length
-                        int extend_length = 10; // Change this value based on your tolerance
-                        bool improved = false;
+                if ( matches > 25 ) { 
+                    int total_len = matches + mismatches ;
+                    double perc_err = mismatches*100/double(total_len) ;
+                    if (  perc_err <= max_mismatches ) { 
 
-                        for (int k = 0; k < extend_length && x + k < n && y + k < m; ++k) {
-                            if (submission1[x + k] != submission2[y + k]) {
-                                mismatches++;
-                            }
-                            curr_match_length++;
-                            if ((mismatches * 100) / (curr_match_length - mismatches) <= max_mismatches) {
-                                improved = true;
-                                break;
-                            }
+                        if ( total_len > longest_fuzzy_match ) { 
+
+                            longest_fuzzy_match = total_len ;
+                            index_i = i;
+                            index_j = j;
+
                         }
 
-                        if (!improved) {
-                            break; // Break if no improvement within the allowed extension
-                        }
                     }
+                
                 }
-                curr_match_length++;
-                x++;
-                y++;
             }
-            if (curr_match_length > longest_fuzzy_match) {
-                    longest_fuzzy_match = curr_match_length;
-                    index_i = i;
-                    index_j = j;
-                }
         }
-    }
-    // Store results
+   }
+
     result_accurate[2] = longest_fuzzy_match;
     result_accurate[3] = index_i;
     result_accurate[4] = index_j;
 
-}
 
+
+}
 //Tried for approximate matches using winnowing and rolling hash
 /*
 int hashWindow(const std::vector<int>& vec, int start, int windowSize) {
@@ -219,10 +210,6 @@ void accurate_matching( std::array<int,5> &result, std::vector<int> &submission1
 
     
     result[1] = total_length_match ;
-    if ( double(total_length_match)/submission2.size() > 0.5 ) { 
-        result[0] = 1 ; 
-    }
-
 
     return ;
 }
@@ -246,18 +233,18 @@ std::array<int, 5> match_submissions(std::vector<int> &submission1,
 
 
 
-    /*----------------------------uncomment for debugging----------------------
+    // /*----------------------------uncomment for debugging----------------------
     
-     for ( int i = 0 ; i < submission1.size() ; i++) { 
-         std::cout << i << " "<< submission1[i]  << std::endl; 
-     }
+    //  for ( int i = 0 ; i < submission1.size() ; i++) { Counting objects: 100% (7/7), done.
+    //      std::cout << i << " "<< submission1[i]  << std::endl; 
+    //  }
 
-     for ( int i = 0 ; i < submission2.size() ; i++) { 
-         std::cout << i << " "<< submission2[i]  << std::endl; 
-     }
+    //  for ( int i = 0 ; i < submission2.size() ; i++) { 
+    //      std::cout << i << " "<< submission2[i]  << std::endl; 
+    //  }
 
 
-    ------------------------------------------------------------------------*/
+    // ------------------------------------------------------------------------*/
 
 
 
@@ -269,13 +256,12 @@ std::array<int, 5> match_submissions(std::vector<int> &submission1,
 
 
     /* Aditi and aakash please write the case for longer strings with 80% matchings here ie fuzzy matching and stuff ;)*/
-        
-    fuzzy_approximate_match(result,submission1,submission2,20);
-
+    fuzzy_approx(result,submission1,submission2,20);
     
-    /*----------------------------------------------------------------*/
-
-
+    int total=std::min(submission1.size(),submission2.size());
+    if ( (result[1] > 0.5*total &&  result[2] > 0.3*total ) || result[1] > 0.7*total )   { 
+        result[0] = 1 ; 
+    }
 
     // if(longestMatch>=threshold) result_accurate[0]=1;
     // if(longestMatch>=result_accurate[2]) result_accurate[2]=longestMatch;
@@ -283,8 +269,8 @@ std::array<int, 5> match_submissions(std::vector<int> &submission1,
     // result_accurate[2]=longestMatch;
     // std::cout << result_accurate[2] << std::endl ;
     // std::cout << longestMatch << std::endl ;
-    // std::cout << submission1.size() << std::endl ;
-    // std::cout << submission2.size() << std::endl ;
+    std::cout << submission1.size() << std::endl ;
+    std::cout << submission2.size() << std::endl ;
 
 
 
@@ -292,4 +278,4 @@ std::array<int, 5> match_submissions(std::vector<int> &submission1,
     return result;
     // End TODO
 
-}      
+}

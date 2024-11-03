@@ -34,5 +34,19 @@ int main(void) {
     execute_and_verify_testcase("testcases/two");
     std::cout<<"Testcase 3: "<<std::endl;
     execute_and_verify_testcase("testcases/three");
+    std::cout<<"Testcase 4: "<<std::endl;
+    execute_and_verify_testcase("testcases/four");
+    std::cout<<"Testcase 5: "<<std::endl;
+    execute_and_verify_testcase("testcases/five");
+    std::cout<<"Testcase 6: "<<std::endl;
+    execute_and_verify_testcase("testcases/six");
+    std::cout<<"Testcase 7: "<<std::endl;
+    execute_and_verify_testcase("testcases/seven");
+    std::cout<<"Testcase 8: "<<std::endl;
+    execute_and_verify_testcase("testcases/eight");
+    std::cout<<"Testcase 9: "<<std::endl;
+    execute_and_verify_testcase("testcases/nine");
+    std::cout<<"Testcase 10: "<<std::endl;
+    execute_and_verify_testcase("testcases/ten");
     return 0;
 }
