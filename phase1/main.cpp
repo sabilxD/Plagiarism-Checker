@@ -48,5 +48,7 @@ int main(void) {
     execute_and_verify_testcase("testcases/nine");
     std::cout<<"Testcase 10: "<<std::endl;
     execute_and_verify_testcase("testcases/ten");
+    std::cout<<"Testcase 11: "<<std::endl;
+    execute_and_verify_testcase("testcases/eleven");
     return 0;
 }

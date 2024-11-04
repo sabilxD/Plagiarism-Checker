@@ -17,6 +17,93 @@ const int BASE = 257;
 const int MOD = 1e9 + 7;
 
 //Fuzzy algorithm
+void fuzzy_approximate_match(std::array<int, 5>& result_accurate, std::vector<int>& submission1, std::vector<int>& submission2, int max_mismatches) {
+    int n = submission1.size();
+    int m = submission2.size();
+    int longest_fuzzy_match = 0; // Track the longest fuzzy match
+    int index_i = -1;
+    int index_j = -1;
+
+    // Iterate through both vectors
+   for (int i = 0; i < n; ++i) {
+        for (int j = 0; j < m; ++j) {
+            int curr_match_length = 0;
+            int mismatches = 0;
+
+            // Check for matches starting from indices i and j
+            int x = i, y = j;
+
+            while (x < n && y < m) {
+                if (submission1[x] != submission2[y]) {
+                    mismatches++;
+                }
+
+                // Check mismatch rate condition
+                if (curr_match_length > 30) {
+
+                    int mismatch_rate = (mismatches * 100) / double(curr_match_length+mismatches);
+
+                    if (mismatch_rate > max_mismatches) {
+                        // Allow matching for an extra threshold length
+                        int extend_length = 30; // Change this value based on your tolerance
+                        
+                        bool improved = false;
+                        
+                        int last_mismatches = mismatches;
+                        
+                        int last_match_length = curr_match_length;
+                        
+                        for (int k = 0; k < extend_length && x + k < n && y + k < m; ++k) {
+                            if (submission1[x + k] != submission2[y + k]) {
+                                last_mismatches++;
+                            }
+                            else{last_match_length++;}
+
+                            if (((last_mismatches * 100) / double(last_match_length+mismatches )) <= max_mismatches) {
+
+                                curr_match_length = last_match_length;
+                                mismatches = last_mismatches;
+                                
+                                x += k;
+                                y += k;
+                            
+                                improved = true;
+                            
+                                break;
+                           
+                            
+                            }
+                        
+                        }
+
+
+                        if (!improved) {
+                            break; // Break if no improvement within the allowed extension
+                        }
+                    }
+                }
+
+                if(submission1[x] == submission2[y])  curr_match_length++ ;
+                x++;
+                y++;
+            }
+
+            int mismatch_rate = (mismatches * 100) / double(curr_match_length+mismatches);
+
+            if (curr_match_length + mismatches > longest_fuzzy_match && mismatch_rate <= max_mismatches) {
+                    longest_fuzzy_match = curr_match_length + mismatches;
+                    index_i = i;
+                    index_j = j;
+                }
+        }
+    }
+    // Store results
+    result_accurate[2] = longest_fuzzy_match;
+    result_accurate[3] = index_i;
+    result_accurate[4] = index_j;
+
+}
+
 void fuzzy_approx (std::array<int, 5>& result_accurate, std::vector<int>& submission1, std::vector<int>& submission2, int max_mismatches) {
     int n = submission1.size();
     int m = submission2.size();
@@ -64,10 +151,67 @@ void fuzzy_approx (std::array<int, 5>& result_accurate, std::vector<int>& submis
         }
    }
 
+
+
+
     result_accurate[2] = longest_fuzzy_match;
     result_accurate[3] = index_i;
     result_accurate[4] = index_j;
 
+
+
+    m = submission1.size();
+    n = submission2.size();
+    index_i = -1;
+    index_j = -1;
+    longest_fuzzy_match = 0 ;
+
+   for (int i = 0; i < n; ++i) {
+        for (int j = 0; j < m; ++j) {
+            int mismatches = 0;
+            int matches = 0 ; 
+            // Check for matches starting from indices i and j
+            int x = i, y = j;
+
+            while (x < n && y < m) {
+
+                if (submission2[x] != submission1[y]) {
+                    mismatches++;
+                    y++ ;
+                }
+                else { 
+                    x++ ;
+                    y++ ;
+                    matches++ ;
+                }
+
+                if ( matches > 25 ) { 
+                    int total_len = matches + mismatches ;
+                    double perc_err = mismatches*100/double(total_len) ;
+                    if (  perc_err <= max_mismatches ) { 
+
+                        if ( total_len > longest_fuzzy_match ) { 
+
+                            longest_fuzzy_match = total_len ;
+                            index_i = i;
+                            index_j = j;
+
+                        }
+
+                    }
+                
+                }
+            }
+        }
+   }
+
+
+    if ( longest_fuzzy_match > result_accurate[2]) { 
+    result_accurate[2] = longest_fuzzy_match;
+    result_accurate[3] = index_j;
+    result_accurate[4] = index_i;
+
+    }
 
 
 }
@@ -259,7 +403,7 @@ std::array<int, 5> match_submissions(std::vector<int> &submission1,
     fuzzy_approx(result,submission1,submission2,20);
     
     int total=std::min(submission1.size(),submission2.size());
-    if ( (result[1] > 0.5*total &&  result[2] > 0.3*total ) || result[1] > 0.7*total )   { 
+    if ( (result[1] > 0.5*total &&  result[2] > 0.3*total ) || result[1] > 0.7*total || result[2] > 200 )   { 
         result[0] = 1 ; 
     }
 
@@ -269,8 +413,8 @@ std::array<int, 5> match_submissions(std::vector<int> &submission1,
     // result_accurate[2]=longestMatch;
     // std::cout << result_accurate[2] << std::endl ;
     // std::cout << longestMatch << std::endl ;
-    std::cout << submission1.size() << std::endl ;
-    std::cout << submission2.size() << std::endl ;
+    // std::cout << submission1.size() << std::endl ;
+    // std::cout << submission2.size() << std::endl ;
 
 
 
