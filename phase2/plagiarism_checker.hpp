@@ -6,6 +6,7 @@
 #include <atomic>
 #include <mutex>
 #include <thread>
+#include <memory>
 // DO NOT add "using namespace std;" or include any other files/libraries.
 // Also DO NOT add the include "bits/stdc++.h"
 
@@ -23,7 +24,7 @@ public:
 
 protected:
     // TODO: Add members and function signatures here
-    void exact_match(std::vector<int>& tokens, int & match_length,
+    void exact_match(std::vector<int>& tokens, const int match_length,
                      std::atomic<int>& count_matches, std::atomic<bool>& plagged,
                      std::shared_ptr<submission_t>& sub1, std::shared_ptr<submission_t>& sub2);
 

@@ -3,10 +3,11 @@
 // Do NOT add "using namespace std;".
 
 // TODO: Implement the methods of the plagiarism_checker_t class
-void exact_match(std::vector<int>& tokens, int & match_length,
+void plagiarism_checker_t::exact_match(std::vector<int>& tokens, const int match_length,
                  std::atomic<int>& count_matches, std::atomic<bool>& plagged,
                  std::shared_ptr<submission_t>& sub1, std::shared_ptr<submission_t>& sub2){
                  count_matches+=21;
+                // count_matches.fetch_add(21, std::memory_order_relaxed);
 
 
 }
@@ -15,7 +16,7 @@ void plagiarism_checker_t::add_submission(std::shared_ptr<submission_t> __submis
 
     auto timestamp = std::chrono::steady_clock::now();
     std::vector<int> tokens = tokenizer_t(__submission->codefile).get_tokens();
-    int matchlength=75;
+    const int matchlength=75;
     std::atomic<int> count_matches(0);
     std::atomic<bool> plagged(false);
     std::vector<std::thread> threads;
@@ -24,9 +25,13 @@ void plagiarism_checker_t::add_submission(std::shared_ptr<submission_t> __submis
         std::lock_guard<std::mutex> lock(mtx);
         for (auto &prev_submission : submissions) {
             // Launch a thread for each previous submission comparison
-            threads.emplace_back(&plagiarism_checker_t::exact_match, this,
-                                 tokens, matchlength, count_matches, plagged,
-                                 __submission, prev_submission.second);
+            // threads.emplace_back(&plagiarism_checker_t::exact_match, this,
+            //                      tokens, matchlength, count_matches, plagged,
+            //                      __submission, prev_submission.second);
+            threads.emplace_back([this, &tokens, matchlength, &count_matches, &plagged, 
+                                  &__submission, &prev_submission]() {
+                exact_match(tokens, matchlength, count_matches, plagged, __submission, prev_submission.second);
+            });
         }
 
         // Add the new submission to the list
