@@ -32,6 +32,5 @@ protected:
     std::vector<std::pair<std::chrono::time_point<std::chrono::steady_clock>,
                         std::shared_ptr<submission_t>>> submissions;
     std::mutex mtx;
-    std::thread worker_thread;
     // End TODO
 };

@@ -3,6 +3,8 @@
 // Do NOT add "using namespace std;".
 
 // TODO: Implement the methods of the plagiarism_checker_t class
+
+
 void plagiarism_checker_t::exact_match(std::vector<int>& tokens, const int match_length,
                  std::atomic<int>& count_matches, std::atomic<bool>& plagged,
                  std::shared_ptr<submission_t>& sub1, std::shared_ptr<submission_t>& sub2){
@@ -10,6 +12,19 @@ void plagiarism_checker_t::exact_match(std::vector<int>& tokens, const int match
                 // count_matches.fetch_add(21, std::memory_order_relaxed);
 
 
+}
+
+plagiarism_checker_t::plagiarism_checker_t(void){
+}
+
+plagiarism_checker_t::~plagiarism_checker_t(void) {
+    submissions.clear();
+}
+
+plagiarism_checker_t::plagiarism_checker_t(std::vector<std::shared_ptr<submission_t>> __submissions){
+    for (auto& sub : __submissions) {
+        submissions.push_back({std::chrono::steady_clock::time_point(), sub});
+    }
 }
 
 void plagiarism_checker_t::add_submission(std::shared_ptr<submission_t> __submission) {
