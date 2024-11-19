@@ -8,6 +8,7 @@
 #include <thread>
 #include <memory>
 #include <math.h>
+#include <unordered_map>
 // DO NOT add "using namespace std;" or include any other files/libraries.
 // Also DO NOT add the include "bits/stdc++.h"
 

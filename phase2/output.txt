@@ -1,16 +1,3 @@
-60413for ainur/enlighten_ea.cpp and ainur/design_ea.cppof max length160
-I was flagged in enlighten_ea.cpp and must defend myself in front of Prof. EruIluvatar.
-Student VardaElentari has plagiarized in enlighten_ea.cpp and will be receiving an FR grade.
-
-ainur/enlighten_ea.cpp count 46 size 328
-60416for ainur/destruction.cpp and ainur/design_ea.cppof max length160
-I was flagged in destruction.cpp and must defend myself in front of Prof. EruIluvatar.
-Student MelkorMorgoth has plagiarized in destruction.cpp and will be receiving an FR grade.
-
-ainur/destruction.cpp count 173 size 311
-ainur/deception.cpp count 0 size 1158
-1for ainur/cheating.cpp and ainur/deception.cppof max length75
 I was flagged in cheating.cpp and must defend myself in front of Prof. MelkorMorgoth.
 Student CurumoSaruman has plagiarized in cheating.cpp and will be receiving an FR grade.
 
-ainur/cheating.cpp count 1922 size 1156
