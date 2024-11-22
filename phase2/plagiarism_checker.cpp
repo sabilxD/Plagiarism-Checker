@@ -108,33 +108,33 @@ void plagiarism_checker_t::exact_match(std::vector<int> tokens, const int match_
                  std::vector<int> matches=findExactMatches(tokens,pre_tokens,15);
                  match_counts=matches.size();
 
-                //  std::cout<<"printing for "<<sub1->codefile<<" and "<<sub2->codefile<<std::endl;
+                 std::cout<<"printing for "<<sub1->codefile<<" and "<<sub2->codefile<<std::endl;
 
                  for(auto it:matches){
                     if(it>=75){
                         long_match=true;
                         break;
                     }
-                    // std::cout<<it<<" ";
+                    std::cout<<it<<" ";
                  }
-                //  std::cout<<std::endl;
+                 std::cout<<std::endl;
 
                 count_matches+=match_counts;
                 if(long_match || match_counts >= 10) {
                     plagged=true;
                     auto diff=timestamp1-timestamp2;
-                    auto time_diff=std::chrono::duration_cast<std::chrono::seconds>(diff).count();
+                    auto time_diff=std::chrono::duration_cast<std::chrono::milliseconds>(diff).count();
                     bool is_original=(timestamp2 == std::chrono::time_point<std::chrono::steady_clock>());
 
                     // // Debugging
-                    // auto duration_since_start2 = timestamp2.time_since_epoch();
-                    // auto seconds2 = std::chrono::duration_cast<std::chrono::seconds>(duration_since_start2).count();
-                    // std::cout<<time_diff<<" "<<seconds2<<" for " <<sub1->codefile<< " and " <<sub2->codefile<< " of max length " <<count_matches <<std::endl;
+                    auto duration_since_start2 = timestamp2.time_since_epoch();
+                    auto seconds2 = std::chrono::duration_cast<std::chrono::seconds>(duration_since_start2).count();
+                    std::cout<<time_diff<<" "<<seconds2<<" for " <<sub1->codefile<< " and " <<sub2->codefile<< " of max length " <<count_matches <<std::endl;
 
                     // Lock the mutex to prevent race conditions
                     std::lock_guard<std::mutex> lock(flagging_mutex);
 
-                    if (abs(time_diff) >= 1) {
+                    if (abs(time_diff) >= 1000) {
                         // Flag only the later submission if not already flagged
                         if (time_diff > 0) {
                             if (sub1 && !is_submission_flagged(sub1)) {
