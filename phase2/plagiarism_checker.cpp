@@ -40,9 +40,6 @@ plagiarism_checker_t::~plagiarism_checker_t(void) {
     if (processing_thread.joinable()) {
         processing_thread.join();
     }
-    // for(auto it: submissions){
-    //     std::cout<<it.first.first<<" "<<it.first.second<<" "<<it.second->codefile<<std::endl;
-    // }
     submissions.clear();
 }
 
@@ -134,17 +131,24 @@ void plagiarism_checker_t::check_plagiarism(std::pair<double,std::shared_ptr<sub
     std::vector<int> token1 = tokenizer_t(sub1.second->codefile).get_tokens();
     int total_matches=0;
     bool is_plagged=false;
-    for (auto sub2:submissions){
+    for (int i=0; i<submissions.size();i++){
+        auto sub2=submissions[i];
         if(!sub1.second || !sub2.second) return;
         std::vector<int> token2 = tokenizer_t(sub2.second->codefile).get_tokens();
         std::vector<int> matches=find_matches(token1,token2,15);
+        if (sub1.second->codefile=="ainur/destruction.cpp" && sub2.second->codefile=="ainur/design_ea.cpp"){
+            for (auto j:matches){
+                std::cout<<j<<" ";
+            }
+        }
         for(auto count:matches){
-            if(count>=75){
+            if(count>=75 || matches.size()>=10){
                 is_plagged=true;
-                if(sub2.first.second==1 && sub1.first-sub2.first.first<=1000){
-                    // std::cout<<sub1.first<<" "<<sub2.first.first<<std::endl;
+                if(sub2.first.second==1 && sub1.first-sub2.first.first<=1000 ){
+                    // std::cout<<"Is plagged by "<<sub1.second->codefile<<std::endl;
                     sub2.second->student->flag_student(sub2.second);
                     sub2.second->professor->flag_professor(sub2.second);
+                    submissions[i].first.second=2;
                     sub2.first.second=2;
                 }             
             }
