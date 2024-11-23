@@ -136,11 +136,14 @@ void plagiarism_checker_t::check_plagiarism(std::pair<double,std::shared_ptr<sub
         if(!sub1.second || !sub2.second) return;
         std::vector<int> token2 = tokenizer_t(sub2.second->codefile).get_tokens();
         std::vector<int> matches=find_matches(token1,token2,15);
-        if (sub1.second->codefile=="ainur/destruction.cpp" && sub2.second->codefile=="ainur/design_ea.cpp"){
+        if (sub1.second->codefile=="ainur/destruction.cpp" 
+        // && sub2.second->codefile=="ainur/design_ea.cpp"
+        ){
             for (auto j:matches){
                 std::cout<<j<<" ";
             }
         }
+        std::cout<<std::endl;
         for(auto count:matches){
             if(count>=75 || matches.size()>=10){
                 is_plagged=true;
