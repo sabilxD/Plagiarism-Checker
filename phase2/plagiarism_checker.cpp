@@ -64,7 +64,7 @@ void match ( std::vector<int> &submission1 , std::vector<int> &submission2 , std
                 }
                 
                 else { 
-                        update(curr_match , matches, min_length , i , j , match_length_at_i , match_at_index_i , match_at_index_j)  ;
+                    update(curr_match , matches, min_length , i , j , match_length_at_i , match_at_index_i , match_at_index_j)  ;
                     j = j + l ;
                     break ;                  
                 }
@@ -196,11 +196,13 @@ plagiarism_checker_t::plagiarism_checker_t(std::vector<std::shared_ptr<submissio
     for (auto& sub : __submissions) {
         submissions.push_back({{std::chrono::steady_clock::time_point(),false}, sub});
     }
+     timestamp = std::chrono::steady_clock::now();
+
 }
 
 void plagiarism_checker_t::add_submission(std::shared_ptr<submission_t> __submission) {
 
-    auto timestamp = std::chrono::steady_clock::now();
+    auto timestamp2 = std::chrono::steady_clock::now();
     std::vector<int> tokens = tokenizer_t(__submission->codefile).get_tokens();
     const int matchlength=75;
     std::atomic<int> count_matches(0);
