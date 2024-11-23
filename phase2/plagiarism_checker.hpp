@@ -34,7 +34,7 @@ protected:
     std::mutex mtx;
     std::condition_variable cv;
     bool finished = false;
-
+    std::chrono::time_point<std::chrono::steady_clock> startTime;
     void queue_processing();
     void check_plagiarism(std::pair<double,std::shared_ptr<submission_t>> sub1);
 

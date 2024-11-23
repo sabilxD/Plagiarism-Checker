@@ -8,6 +8,7 @@ plagiarism_checker_t::plagiarism_checker_t(void) {
     finished = false;
     // Start the processing thread
     processing_thread = std::thread(&plagiarism_checker_t::queue_processing, this);
+    startTime=std::chrono::steady_clock::now();
 }
 
 plagiarism_checker_t::plagiarism_checker_t(std::vector<std::shared_ptr<submission_t>> __submissions) {
@@ -17,22 +18,31 @@ plagiarism_checker_t::plagiarism_checker_t(std::vector<std::shared_ptr<submissio
     for (auto sub : __submissions){
         submissions.push_back(std::make_pair(std::make_pair(0,0),sub));
     }
+    startTime=std::chrono::steady_clock::now();
 
 }
 
 plagiarism_checker_t::~plagiarism_checker_t(void) {
+    // {
+    //     std::unique_lock<std::mutex> lock(mtx);
+    //     // Ensure all items are processed before the destructor ends
+    //     while (!unchecked.empty()) {
+    //         cv.wait(lock);
+    //     }
+    //     finished = true;
+    // }
+    // cv.notify_one();
     {
         std::unique_lock<std::mutex> lock(mtx);
-        // Ensure all items are processed before the destructor ends
-        while (!unchecked.empty()) {
-            cv.wait(lock);
-        }
-        finished = true;
+        finished = true; // Set finished flag early
+        cv.notify_all(); // Notify the thread to exit immediately
     }
-    cv.notify_one();
     if (processing_thread.joinable()) {
         processing_thread.join();
     }
+    // for(auto it: submissions){
+    //     std::cout<<it.first.first<<" "<<it.first.second<<" "<<it.second->codefile<<std::endl;
+    // }
     submissions.clear();
 }
 
@@ -131,15 +141,18 @@ void plagiarism_checker_t::check_plagiarism(std::pair<double,std::shared_ptr<sub
         for(auto count:matches){
             if(count>=75){
                 is_plagged=true;
-                if(sub2.first.second==1 && sub1.first-sub2.first.first>=1000){
+                if(sub2.first.second==1 && sub1.first-sub2.first.first<=1000){
+                    // std::cout<<sub1.first<<" "<<sub2.first.first<<std::endl;
                     sub2.second->student->flag_student(sub2.second);
                     sub2.second->professor->flag_professor(sub2.second);
+                    sub2.first.second=2;
                 }             
             }
             total_matches++;
         }
     }
-    if (total_matches>=20 || is_plagged){
+    if ((total_matches>=20 || is_plagged)){
+
         sub1.second->student->flag_student(sub1.second);
         sub1.second->professor->flag_professor(sub1.second);
         submissions.push_back(std::make_pair(std::make_pair(sub1.first,2),sub1.second));
@@ -178,8 +191,8 @@ void plagiarism_checker_t::add_submission(std::shared_ptr<submission_t> __submis
         // std::lock_guard<std::mutex> lock(mtx);
         std::unique_lock<std::mutex> lock(mtx);
         auto duration = timestamp.time_since_epoch();
-        double millisec = static_cast<double>(std::chrono::duration_cast<std::chrono::milliseconds>(duration).count());
-        unchecked.push(std::make_pair(millisec, __submission));
+        double timeDiffMillis = std::chrono::duration_cast<std::chrono::duration<double, std::milli>>(timestamp - startTime).count();
+        unchecked.push(std::make_pair(timeDiffMillis, __submission));
     }
     cv.notify_one();  // Notify the processing thread
 }
