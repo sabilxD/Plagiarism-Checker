@@ -166,7 +166,7 @@ void plagiarism_checker_t::check_plagiarism(std::pair<double,std::shared_ptr<sub
         submissions.push_back(std::make_tuple(sub1.first,2,sub1.second,token1));
     }
     else{
-        submissions.push_back(std::make_tuple(sub1.first,2,sub1.second,token1));
+        submissions.push_back(std::make_tuple(sub1.first,1,sub1.second,token1));
     }
 
 }
