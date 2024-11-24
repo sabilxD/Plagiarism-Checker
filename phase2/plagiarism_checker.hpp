@@ -1,4 +1,5 @@
 #include "structures.hpp"
+// -----------------------------------------------------------------------------
 #include <vector>
 #include <queue>
 #include <memory>
@@ -9,8 +10,6 @@
 #include <math.h>
 #include <unordered_map>
 #include <set>
-// -----------------------------------------------------------------------------
-
 // You are free to add any STL includes above this comment, below the --line--.
 // DO NOT add "using namespace std;" or include any other files/libraries.
 // Also DO NOT add the include "bits/stdc++.h"
