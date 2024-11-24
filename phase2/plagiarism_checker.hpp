@@ -8,6 +8,7 @@
 #include <mutex>
 #include <math.h>
 #include <unordered_map>
+#include <set>
 // -----------------------------------------------------------------------------
 
 // You are free to add any STL includes above this comment, below the --line--.

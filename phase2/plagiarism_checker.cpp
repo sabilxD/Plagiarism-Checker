@@ -44,7 +44,7 @@ plagiarism_checker_t::~plagiarism_checker_t(void) {
     submissions.clear();
 }
 
-void update( int&curr_match  , std::vector<int>& matches, int&min_length , int&i , int &j ,
+void update( int&curr_match  , std::vector<std::pair<int,int>>& matches, int&min_length , int&i , int &j ,
              std::unordered_map<int , int>&match_length , std::vector<bool>&match_at_index_i , std::vector<bool>&match_at_index_j)  {
 
     if ( curr_match >= min_length) { 
@@ -53,7 +53,7 @@ void update( int&curr_match  , std::vector<int>& matches, int&min_length , int&i
 
             int increment = curr_match - match_length[i] ;
             
-            matches.push_back(increment);
+            matches.push_back({i,increment});
             match_length[i] = curr_match ;
             // std::cout << " match found at " << i << " " << j << " of length: " << curr_match << " " << increment << std::endl ;
 
@@ -73,7 +73,7 @@ void update( int&curr_match  , std::vector<int>& matches, int&min_length , int&i
 
 void match ( std::vector<int> &submission1 , std::vector<int> &submission2 , std::vector<bool> &match_at_index_i ,
              std::vector<bool> &match_at_index_j , std::unordered_map<int , int> &match_length_at_i ,
-             int &min_length , std::vector<int>& matches ) { 
+             int &min_length , std::vector<std::pair<int,int>>& matches ) { 
 
     for ( int i  = 0 ; i< submission1.size() ; i++) { 
         
@@ -114,7 +114,7 @@ void match ( std::vector<int> &submission1 , std::vector<int> &submission2 , std
     }   
 }
 
-std::vector<int> find_matches(std::vector<int>& submission1, std::vector<int>& submission2,int min_length) {
+std::vector<std::pair<int,int>> find_matches(std::vector<int>& submission1, std::vector<int>& submission2,int min_length) {
 
     int total_length_match = 0 ; 
    
@@ -122,7 +122,7 @@ std::vector<int> find_matches(std::vector<int>& submission1, std::vector<int>& s
     std::vector<bool> match_at_index_j(submission2.size() , false) ;
 
     std::unordered_map<int , int> match_length_at_i ;
-    std::vector<int> matches;
+    std::vector<std::pair<int,int>> matches;
     match( submission1 , submission2 , match_at_index_i , match_at_index_j , match_length_at_i , min_length , matches ) ;
 
     return matches;
@@ -130,22 +130,15 @@ std::vector<int> find_matches(std::vector<int>& submission1, std::vector<int>& s
 
 void plagiarism_checker_t::check_plagiarism(std::pair<double,std::shared_ptr<submission_t>> sub1){
     std::vector<int> token1 = tokenizer_t(sub1.second->codefile).get_tokens();
-    int total_matches=0;
     bool is_plagged=false;
+    std::set<std::pair<int,int>> patched;
     for (int i=0; i<submissions.size();i++){
         auto sub2=submissions[i];
         if(!sub1.second || !std::get<2>(sub2)) return;
-        // std::vector<int> token2 = tokenizer_t(sub2.second->codefile).get_tokens();
-        std::vector<int> matches=find_matches(token1,std::get<3>(sub2),15);
-        // if (sub1.second->codefile=="ainur/destruction.cpp" 
-        // // && sub2.second->codefile=="ainur/design_ea.cpp"
-        // ){
-        //     for (auto j:matches){
-        //         std::cout<<j<<" ";
-        //     }
-        // }
-        // std::cout<<std::endl;
-        for(auto count:matches){
+        std::vector<std::pair<int,int>> matches=find_matches(token1,std::get<3>(sub2),15);
+        for(auto f:matches){
+            patched.insert(f);
+            int count=f.second;
             if(count>=75 || matches.size()>=10){
                 is_plagged=true;
                 if(std::get<1>(sub2)==1 && sub1.first-std::get<0>(sub2)<=1000 ){
@@ -156,8 +149,19 @@ void plagiarism_checker_t::check_plagiarism(std::pair<double,std::shared_ptr<sub
                     std::get<1>(sub2)=2;
                 }             
             }
+        }
+    }
+
+
+    // pathwork plagiarism
+    int total_matches=0;
+    int max_covered=0;
+    for (auto i:patched){
+        if(max_covered<i.first+i.second){
+            max_covered=i.first+i.second;
             total_matches++;
         }
+
     }
     if ((total_matches>=20 || is_plagged)){
 
