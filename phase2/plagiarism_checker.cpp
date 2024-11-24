@@ -136,10 +136,13 @@ void plagiarism_checker_t::check_plagiarism(std::pair<double,std::shared_ptr<sub
         auto sub2=submissions[i];
         if(!sub1.second || !std::get<2>(sub2)) return;
         std::vector<std::pair<int,int>> matches=find_matches(token1,std::get<3>(sub2),15);
+        int no_of_matches=0;
+        int sum = 0 ;
         for(auto f:matches){
             patched.insert(f);
             int count=f.second;
-            if(count>=75 || matches.size()>=10){
+            sum+=count;
+            if(count>=75 ){
                 is_plagged=true;
                 if(std::get<1>(sub2)==1 && sub1.first-std::get<0>(sub2)<=1000 ){
                     // std::cout<<"Is plagged by "<<sub1.second->codefile<<std::endl;
@@ -149,6 +152,19 @@ void plagiarism_checker_t::check_plagiarism(std::pair<double,std::shared_ptr<sub
                     std::get<1>(sub2)=2;
                 }             
             }
+        }
+        no_of_matches = sum/15 ;
+        // std::cout<<no_of_matches<<" "<<sub1.second->codefile<<std::endl;
+        if(no_of_matches>=10){
+            is_plagged=true;
+            if(std::get<1>(sub2)==1 && sub1.first-std::get<0>(sub2)<=1000 ){
+                // std::cout<<"Is plagged by "<<sub1.second->codefile<<std::endl;
+                std::get<2>(sub2)->student->flag_student(std::get<2>(sub2));
+                std::get<2>(sub2)->professor->flag_professor(std::get<2>(sub2));
+                std::get<1>(submissions[i]) =2;
+                std::get<1>(sub2)=2;
+            } 
+
         }
     }
 
