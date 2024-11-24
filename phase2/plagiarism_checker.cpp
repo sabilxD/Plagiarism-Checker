@@ -107,11 +107,10 @@ void plagiarism_checker_t::check_plagiarism(std::pair<double,std::shared_ptr<sub
         if(!sub1.second || !std::get<2>(sub2)) return;
         std::vector<std::pair<int,int>> matches=find_matches(token1,std::get<3>(sub2),15);
         int no_of_matches=0;
-        int sum = 0 ;
         for(auto f:matches){
             patched.insert(f);
             int count=f.second;
-            sum+=count;
+            no_of_matches+=count/15;
             if(count>=75 ){
                 is_plagged=true;
                 if(std::get<1>(sub2)==1 && sub1.first-std::get<0>(sub2)<=1000 ){
@@ -122,7 +121,6 @@ void plagiarism_checker_t::check_plagiarism(std::pair<double,std::shared_ptr<sub
                 }             
             }
         }
-        no_of_matches = sum/15 ;
         if(no_of_matches>=10){
             is_plagged=true;
             if(std::get<1>(sub2)==1 && sub1.first-std::get<0>(sub2)<=1000 ){
@@ -140,7 +138,7 @@ void plagiarism_checker_t::check_plagiarism(std::pair<double,std::shared_ptr<sub
     for (auto i:patched){
         if(max_covered<i.first+i.second){
             max_covered=i.first+i.second;
-            total_matches++;
+            total_matches+=i.second/15;
         }
 
     }
