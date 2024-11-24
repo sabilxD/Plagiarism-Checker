@@ -144,7 +144,7 @@ void plagiarism_checker_t::check_plagiarism(std::pair<double,std::shared_ptr<sub
         //         std::cout<<j<<" ";
         //     }
         // }
-        std::cout<<std::endl;
+        // std::cout<<std::endl;
         for(auto count:matches){
             if(count>=75 || matches.size()>=10){
                 is_plagged=true;
