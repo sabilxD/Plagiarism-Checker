@@ -16,7 +16,8 @@ plagiarism_checker_t::plagiarism_checker_t(std::vector<std::shared_ptr<submissio
     finished = false;
     processing_thread=std::thread(&plagiarism_checker_t::queue_processing, this);
     for (auto sub : __submissions){
-        submissions.push_back(std::make_pair(std::make_pair(0,0),sub));
+        std::vector<int> token = tokenizer_t(sub->codefile).get_tokens();
+        submissions.push_back(std::make_tuple(0,0,sub,token));
     }
     startTime=std::chrono::steady_clock::now();
 
@@ -133,26 +134,26 @@ void plagiarism_checker_t::check_plagiarism(std::pair<double,std::shared_ptr<sub
     bool is_plagged=false;
     for (int i=0; i<submissions.size();i++){
         auto sub2=submissions[i];
-        if(!sub1.second || !sub2.second) return;
-        std::vector<int> token2 = tokenizer_t(sub2.second->codefile).get_tokens();
-        std::vector<int> matches=find_matches(token1,token2,15);
-        if (sub1.second->codefile=="ainur/destruction.cpp" 
-        // && sub2.second->codefile=="ainur/design_ea.cpp"
-        ){
-            for (auto j:matches){
-                std::cout<<j<<" ";
-            }
-        }
+        if(!sub1.second || !std::get<2>(sub2)) return;
+        // std::vector<int> token2 = tokenizer_t(sub2.second->codefile).get_tokens();
+        std::vector<int> matches=find_matches(token1,std::get<3>(sub2),15);
+        // if (sub1.second->codefile=="ainur/destruction.cpp" 
+        // // && sub2.second->codefile=="ainur/design_ea.cpp"
+        // ){
+        //     for (auto j:matches){
+        //         std::cout<<j<<" ";
+        //     }
+        // }
         std::cout<<std::endl;
         for(auto count:matches){
             if(count>=75 || matches.size()>=10){
                 is_plagged=true;
-                if(sub2.first.second==1 && sub1.first-sub2.first.first<=1000 ){
+                if(std::get<1>(sub2)==1 && sub1.first-std::get<0>(sub2)<=1000 ){
                     // std::cout<<"Is plagged by "<<sub1.second->codefile<<std::endl;
-                    sub2.second->student->flag_student(sub2.second);
-                    sub2.second->professor->flag_professor(sub2.second);
-                    submissions[i].first.second=2;
-                    sub2.first.second=2;
+                    std::get<2>(sub2)->student->flag_student(std::get<2>(sub2));
+                    std::get<2>(sub2)->professor->flag_professor(std::get<2>(sub2));
+                    std::get<1>(submissions[i]) =2;
+                    std::get<1>(sub2)=2;
                 }             
             }
             total_matches++;
@@ -162,10 +163,10 @@ void plagiarism_checker_t::check_plagiarism(std::pair<double,std::shared_ptr<sub
 
         sub1.second->student->flag_student(sub1.second);
         sub1.second->professor->flag_professor(sub1.second);
-        submissions.push_back(std::make_pair(std::make_pair(sub1.first,2),sub1.second));
+        submissions.push_back(std::make_tuple(sub1.first,2,sub1.second,token1));
     }
     else{
-        submissions.push_back(std::make_pair(std::make_pair(sub1.first,1),sub1.second));
+        submissions.push_back(std::make_tuple(sub1.first,2,sub1.second,token1));
     }
 
 }

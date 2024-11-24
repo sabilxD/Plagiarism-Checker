@@ -27,7 +27,7 @@ public:
 
 protected:
     // TODO: Add members and function signatures here
-    std::vector<std::pair<std::pair<double,int>,std::shared_ptr<submission_t>>> submissions;
+    std::vector<std::tuple<double, int, std::shared_ptr<submission_t>,std::vector<int>>> submissions;
     // double is for time and int is for type of file. Original->0, Not-Plagged->1, Plagged->2
     std::queue<std::pair<double,std::shared_ptr<submission_t>>> unchecked;
     std::thread processing_thread;
